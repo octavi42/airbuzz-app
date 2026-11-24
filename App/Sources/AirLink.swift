@@ -53,6 +53,8 @@ final class AirLink: NSObject, @unchecked Sendable {
     var maxPacketSize = 0
     var startedAt: DispatchTime?
     var linkReady = false
+    var reportedFound = false
+    var reportedLinked = false
 
     var isWarm: Bool {
         linkReady && peripheral?.state == .connected && tx != nil && rx?.isNotifying == true
@@ -67,11 +69,34 @@ final class AirLink: NSObject, @unchecked Sendable {
         }
     }
 
-    func buzz(_ mode: BuzzMode = .single) async throws -> Int {
-        try await perform(mode == .single ? .tap : .double)
+    enum Source: String, Sendable { case app, automation }
+
+    func buzz(_ mode: BuzzMode = .single, source: Source = .app) async throws -> Int {
+        try await tracked(mode == .single ? .tap : .double, source: source)
     }
 
-    func readIntensity() async throws -> Int { try await perform(.read) }
+    func readIntensity() async throws -> Int { try await tracked(.read, source: .app) }
+
+    /// Runs an operation and reports how it went. Automations wait for the report so it is
+    /// sent before iOS suspends the intent; the in-app button does not wait.
+    private func tracked(_ operation: Operation, source: Source) async throws -> Int {
+        let started = Date()
+        var properties: [String: Telemetry.Value] = [
+            "operation": .string("\(operation)"), "source": .string(source.rawValue),
+        ]
+        let result: Result<Int, Error>
+        do { result = .success(try await perform(operation)) } catch { result = .failure(error) }
+        properties["seconds"] = .number((Date().timeIntervalSince(started) * 10).rounded() / 10)
+        switch result {
+        case .success: properties["ok"] = .bool(true)
+        case .failure(let error):
+            properties["ok"] = .bool(false)
+            properties["error"] = .string(error is CancellationError ? "cancelled" : error.localizedDescription)
+        }
+        let report = Task { await Telemetry.shared.capture("band_action", properties) }
+        if source == .automation { await report.value }
+        return try result.get()
+    }
 
     private func perform(_ operation: Operation) async throws -> Int {
         let id = UUID()
@@ -174,6 +199,10 @@ final class AirLink: NSObject, @unchecked Sendable {
     func markReady() {
         linkReady = true
         log("Band link ready")
+        if !reportedLinked {
+            reportedLinked = true
+            Task { await Telemetry.shared.capture("band_linked") }
+        }
         Task { @MainActor in AirStatus.shared.linked = true }
         if active != nil { beginSession() }
     }
@@ -190,6 +219,10 @@ final class AirLink: NSObject, @unchecked Sendable {
         scanDeadline?.cancel()
         peripheral = band
         band.delegate = self
+        if !reportedFound {
+            reportedFound = true
+            Task { await Telemetry.shared.capture("band_found") }
+        }
         let description = "Band found: \(band.name ?? "Fitbit Air")"
         Task { @MainActor in AirStatus.shared.band = description }
         publish(description)

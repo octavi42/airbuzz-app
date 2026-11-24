@@ -18,7 +18,7 @@ struct BuzzMyAirIntent: AppIntent {
     @Parameter(title: "Mode") var mode: BuzzMode?
 
     func perform() async throws -> some IntentResult & ProvidesDialog {
-        let intensity = try await AirLink.shared.buzz(mode ?? .single)
+        let intensity = try await AirLink.shared.buzz(mode ?? .single, source: .automation)
         let strength = intensity == 2 ? "low" : "high"
         return .result(dialog: "Air buzzed. Strength restored to \(strength).")
     }

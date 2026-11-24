@@ -86,6 +86,8 @@ struct AutomationGuide: View {
     private func copyAndOpen() {
         UIPasteboard.general.string = prompt
         copied = true
+        let everyApp = anyApp
+        Task { await Telemetry.shared.capture("automation_prompt_copied", ["any_app": .bool(everyApp)]) }
         if let url = URL(string: "shortcuts://create-shortcut") { openURL(url) }
     }
 }

@@ -8,7 +8,7 @@
     <key>CFBundleName</key><string>$(PRODUCT_NAME)</string>
     <key>CFBundlePackageType</key><string>APPL</string>
     <key>CFBundleShortVersionString</key><string>1.0</string>
-    <key>CFBundleVersion</key><string>1</string>
+    <key>CFBundleVersion</key><string>2</string>
     <key>LSRequiresIPhoneOS</key><true/>
     <key>NSBluetoothAlwaysUsageDescription</key>
     <string>AirBuzz talks to your Fitbit Air over Bluetooth to make it vibrate.</string>
@@ -17,5 +17,7 @@
     <key>UISupportedInterfaceOrientations</key>
     <array><string>UIInterfaceOrientationPortrait</string></array>
     <key>ITSAppUsesNonExemptEncryption</key><false/>
+    <key>PostHogKey</key><string>$(POSTHOG_KEY)</string>
+    <key>PostHogHost</key><string>$(POSTHOG_HOST)</string>
 </dict>
 </plist>

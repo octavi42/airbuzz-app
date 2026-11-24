@@ -30,6 +30,10 @@ It briefly changes the band's haptic intensity setting, which makes the motor pu
 - **Single** taps once. **Double** holds the alternate setting for 800 ms.
 - Requests that arrive together run in order. Each one is capped at 25 seconds.
 
+## Privacy
+
+AirBuzz sends anonymous usage events to PostHog: a random install ID, app and iOS version, device model, and for each buzz whether it worked, how long it took and whether the app or an automation asked for it. It never sends notification content, app names, band identifiers or anything about you. Turn it off in the app under **... → Share anonymous usage**. If you build from source, clear `POSTHOG_KEY` in `App/project.yml` to send nothing.
+
 ## Requirements
 
 - iPhone on iOS 27

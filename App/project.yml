@@ -27,6 +27,10 @@ targets:
         LIBRARY_SEARCH_PATHS: "$(SRCROOT)/../build/core-ios"
         TARGETED_DEVICE_FAMILY: "1"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        # PostHog project key for anonymous usage events. It is a public, write-only key;
+        # forks should clear it or point it at their own project.
+        POSTHOG_KEY: phc_p4h77oaaKoxdcEmeQFbanXDkYJ3xj7uQk8bJRWTrdh2j
+        POSTHOG_HOST: https://us.i.posthog.com
     dependencies:
       - framework: ../build/core-ios/libairbuzz.a
         embed: false

@@ -7,6 +7,7 @@ struct ContentView: View {
     @State private var showSetup = false
     @State private var showLog = false
     @State private var taps = 0
+    @State private var sharing = Telemetry.isEnabled
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
@@ -40,6 +41,7 @@ struct ContentView: View {
                         Button("Read strength", systemImage: "gauge.with.dots.needle.33percent") { run(read: true) }
                             .disabled(running)
                         Button("Activity", systemImage: "list.bullet") { showLog = true }
+                        Toggle("Share anonymous usage", systemImage: "chart.bar", isOn: $sharing)
                     } label: {
                         Image(systemName: "ellipsis")
                     }
@@ -48,6 +50,10 @@ struct ContentView: View {
             .sheet(isPresented: $showSetup) { AutomationGuide() }
             .sheet(isPresented: $showLog) { ActivityLog(status: status) }
             .sensoryFeedback(.impact(weight: mode == .double ? .heavy : .medium), trigger: taps)
+            .onChange(of: sharing) { _, on in
+                Telemetry.isEnabled = on
+                if !on { Task { await Telemetry.shared.clear() } }
+            }
         }
     }
 
